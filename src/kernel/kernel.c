@@ -30,7 +30,10 @@ void kernel_main(unsigned long magic, unsigned long addr) {
   inited_funs_no = 0;
   void *mbi = (void *) addr;
 
-  init_vbe(mbi);
+  if (init_vbe(mbi) != 0) {
+    serial_writestring("failed to find framebuffer tag");
+    return;
+  }
   init_color(0xff0000, 0x990000, 0x00ff00, 0x009900, 0xffff00, 0x999900,
              0x0000ff, 0x000099, 0xff00ff, 0x990099, 0x00ffff, 0x009999,
              0xffffff, 0x000000, 0x999999, 0x444444, 0x161925, 0xdedede);
