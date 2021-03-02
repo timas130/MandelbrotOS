@@ -88,7 +88,7 @@ void sysfetch() {
   printf("\r\n\n");
 }
 
-int kshell(multiboot_info_t *mbi, unsigned long magic) {
+int kshell(void *mbi, unsigned long magic) {
   while (true) {
     prompt();
 

@@ -1,6 +1,7 @@
 #include <font.h>
 #include <kernel/text.h>
 #include <kernel/vbe.h>
+#include <kernel/serial.h>
 #include <multiboot.h>
 #include <stdbool.h>
 
@@ -21,14 +22,29 @@ bool baddraw(int x, int y) {
   }
 }
 
-int init_vbe(multiboot_info_t *mbi) {
-  fb_addr = (void *)(unsigned long)mbi->framebuffer_addr;
-  fb_pitch = (uint32_t)mbi->framebuffer_pitch;
-  fb_width = (uint32_t)mbi->framebuffer_width;
-  fb_height = (uint32_t)mbi->framebuffer_height;
-  fb_bpp = (uint8_t)mbi->framebuffer_bpp;
+int init_vbe(void *mbi) {
+  unsigned int multiboot_size = *(unsigned int *) mbi;
+  struct multiboot_tag *tag;
 
-  return 0;
+  // look for the framebuffer tag
+  for (tag = (struct multiboot_tag *) (mbi + 8);
+       tag->type != MULTIBOOT_TAG_TYPE_END;
+       tag = (struct multiboot_tag *) ((multiboot_uint8_t *) tag
+                                       + ((tag->size + 7) & ~7))) {
+    if (tag->type == MULTIBOOT_TAG_TYPE_FRAMEBUFFER) {
+      struct multiboot_tag_framebuffer *fb =
+          (struct multiboot_tag_framebuffer *) tag;
+      fb_addr = fb->common.framebuffer_addr;
+      fb_pitch = fb->common.framebuffer_pitch;
+      fb_width = fb->common.framebuffer_width;
+      fb_height = fb->common.framebuffer_height;
+      fb_bpp = fb->common.framebuffer_bpp;
+      return 0;
+    }
+  }
+  serial_writestring("framebuffer tag not found\r\n");
+
+  return 1;
 }
 
 int drawrect(int startx, int starty, int stopx, int stopy, int color) {

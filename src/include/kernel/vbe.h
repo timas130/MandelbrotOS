@@ -23,6 +23,6 @@ int drawborder(int startx, int starty, int stopx, int stopy, int thickness,
                int color, int incolor);
 void mandelbrot(float left, float top, float xside, float yside, int color);
 
-int init_vbe(multiboot_info_t *mbi);
+int init_vbe(void *mbi);
 
 #endif

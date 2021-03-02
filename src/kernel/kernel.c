@@ -1,4 +1,3 @@
-#include "kernel/serial.h"
 #include <font.h>
 #include <kernel/alloc.h>
 #include <kernel/gdt.h>
@@ -11,6 +10,8 @@
 #include <kernel/pit.h>
 #include <kernel/text.h>
 #include <kernel/vbe.h>
+#include <kernel/power.h>
+#include <kernel/serial.h>
 #include <macros.h>
 #include <multiboot.h>
 #include <stdbool.h>
@@ -18,11 +19,16 @@
 #include <stdint.h>
 #include <string.h>
 
-int kernel_main(unsigned long magic, unsigned long addr) {
+void kernel_main(unsigned long magic, unsigned long addr) {
   init_serial();
 
+  if (magic != MULTIBOOT2_BOOTLOADER_MAGIC) {
+    serial_writestring("invalid multiboot2 magic\r\n");
+    return; // return to boot.s and halt
+  }
+
   inited_funs_no = 0;
-  multiboot_info_t *mbi = (multiboot_info_t *)addr;
+  void *mbi = (void *) addr;
 
   init_vbe(mbi);
   init_color(0xff0000, 0x990000, 0x00ff00, 0x009900, 0xffff00, 0x999900,
@@ -45,5 +51,5 @@ int kernel_main(unsigned long magic, unsigned long addr) {
 
   kshell(mbi, magic);
 
-  return 0;
+  return;
 }
