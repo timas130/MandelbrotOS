@@ -30,7 +30,14 @@ inline void outl(unsigned short _port, uint32_t _data) {
 }
 
 inline void io_wait(void) {
-  __asm__ __volatile__("jmp 1f\n\t"
-                       "1:jmp 2f\n\t"
-                       "2:");
+    __asm__ __volatile__("jmp 1f\n\t"
+                         "1:jmp 2f\n\t"
+                         "2:");
+}
+
+void insl(unsigned reg, unsigned int *buffer, int quads) {
+  int index;
+  for (index = 0; index < quads; index++) {
+    buffer[index] = inb(reg);
+  }
 }

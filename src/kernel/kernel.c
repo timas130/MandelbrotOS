@@ -18,6 +18,7 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <string.h>
+#include <kernel/atapio.h>
 
 int do_checks(unsigned long magic, void *mbi) {
   if (magic != MULTIBOOT2_BOOTLOADER_MAGIC) {
@@ -58,6 +59,33 @@ int kernel_main(unsigned long magic, unsigned long addr) {
   printf("The keyboard layout is: %s\r\n", kbd);
 
   serial_writestring("Serial inited!\r\n");
+
+  struct pio_bus bus;
+  bus.base_port = 0x1F0;
+  bus.base_control_port = 0x3F6;
+  bus.selected_drive = 0;
+  if (has_ata_device(&bus)) {
+    serial_writestring("!! >>> ATA DEVICE EXISTS <<< !!\r\n");
+    printf("!! >>> ATA DEVICE EXISTS <<< !!\r\n");
+  } else {
+    serial_writestring("ata device doesn't exist :(\r\n");
+    printf("ata device doesn't exist :(\r\n");
+  }
+
+  struct pio_bus bus2;
+  bus.base_port = 0x170;
+  bus.base_control_port = 0x376;
+  bus.selected_drive = 0;
+  if (has_ata_device(&bus)) {
+    serial_writestring("!! >>> ATA DEVICE 2 EXISTS <<< !!\r\n");
+    printf("!! >>> ATA DEVICE 2 EXISTS <<< !!\r\n");
+  } else {
+    serial_writestring("ata device 2 doesn't exist :(\r\n");
+    printf("ata device 2 doesn't exist :(\r\n");
+  }
+
+  uint16_t target[256];
+  ata_pio_read(target, 0, 1, &bus, false);
 
   kshell(mbi, magic);
 
