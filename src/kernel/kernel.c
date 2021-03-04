@@ -72,6 +72,7 @@ int kernel_main(unsigned long magic, unsigned long addr) {
     printf("ata device doesn't exist :(\r\n");
   }
 
+  // it works only if i check the 2nd bus O_o
   struct pio_bus bus2;
   bus.base_port = 0x170;
   bus.base_control_port = 0x376;
@@ -86,6 +87,11 @@ int kernel_main(unsigned long magic, unsigned long addr) {
 
   uint16_t target[256];
   ata_pio_read(target, 0, 1, &bus, false);
+
+  for (int i = 0; i < 256; ++i) {
+    printf("%x ", target[i]);
+  }
+  printf("\r\n");
 
   kshell(mbi, magic);
 

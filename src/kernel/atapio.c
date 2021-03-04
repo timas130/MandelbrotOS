@@ -55,6 +55,7 @@ void ata_pio_read(uint16_t *target, uint32_t lba, uint8_t sectors,
     printf("cp1 ");
     ata_wait_bsy(device);
     printf("cp2 ");
+    printf("status: %x\r\n", inb(device->base_port + PIO_PORT_STATUS));
     ata_wait_drq(device);
     printf("cp3 ");
     printf("status: %x\r\n", inb(device->base_port + PIO_PORT_STATUS));
