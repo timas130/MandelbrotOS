@@ -72,7 +72,7 @@ GENISOIMAGE=genisoimage
 ISO=build/mandelbrotos.iso
 DRIVE=myimage.raw
 #QEMU=qemu-system-x86_64 -cdrom $(ISO) -serial stdio
-QEMU=qemu-system-x86_64 -hda $(DRIVE) --cdrom $(ISO) -serial stdio
+QEMU=qemu-system-x86_64 -cdrom $(ISO) -serial stdio -hdd $(DRIVE)
 
 .PHONY: all build clean qemu
 

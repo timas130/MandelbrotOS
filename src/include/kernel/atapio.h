@@ -4,17 +4,17 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-struct pio_bus {
+typedef struct pio_bus {
   uint16_t base_port;
   uint16_t base_control_port;
   uint8_t selected_drive;
-};
+} pio_bus_t;
 
-bool has_ata_drive(struct pio_bus *device, bool slave);
+bool has_ata_drive(pio_bus_t *device, bool slave);
 int ata_pio_read(uint16_t *target, uint64_t lba, uint16_t sectors,
-                 struct pio_bus *device, bool slave);
+                 pio_bus_t *device, bool slave);
 int ata_pio_write(uint16_t *bytes, uint64_t lba, uint16_t sectors,
-                  struct pio_bus *device, bool slave);
+                  pio_bus_t *device, bool slave);
 
 #define PIO_PORT_DATA 0
 #define PIO_PORT_ERROR 1
@@ -28,7 +28,7 @@ int ata_pio_write(uint16_t *bytes, uint64_t lba, uint16_t sectors,
 #define PIO_PORT_COMMAND 7
 
 #define PIO_CONTROL_STATUS 0
-#define PIO_CONTROL_DEVICE_CONTROL 1
+#define PIO_CONTROL_DEVICE_CONTROL 0
 #define PIO_CONTROL_DRIVE_ADDRESS 2
 
 #define PIO_STATUS_ERR  1

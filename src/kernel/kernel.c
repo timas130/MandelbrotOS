@@ -60,7 +60,7 @@ int kernel_main(unsigned long magic, unsigned long addr) {
 
   serial_writestring("Serial inited!\r\n");
 
-  struct pio_bus bus;
+  pio_bus_t bus;
   bus.base_port = 0x1F0;
   bus.base_control_port = 0x3F6;
   bus.selected_drive = 0;
@@ -73,7 +73,7 @@ int kernel_main(unsigned long magic, unsigned long addr) {
   }
 
   // it works only if i check the 2nd bus O_o
-  struct pio_bus bus2;
+  pio_bus_t bus2;
   bus.base_port = 0x170;
   bus.base_control_port = 0x376;
   bus.selected_drive = 0;
