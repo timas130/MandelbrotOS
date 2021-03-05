@@ -146,7 +146,7 @@ int *create_delim_dict(char *delim) {
   memset((void *)d, 0, sizeof(int) * DICT_LEN);
 
   for (unsigned int i = 0; i < strlen(delim); i++) {
-    d[(int) delim[i]] = 1;
+    d[(int)delim[i]] = 1;
   }
   return d;
 }
@@ -169,7 +169,7 @@ char *strtok(char *str, char *delim) {
     strcpy(last, str);
   }
 
-  while (deli_dict[(int) *last] && *last != '\0') {
+  while (deli_dict[(int)*last] && *last != '\0') {
     last++;
   }
   str = last;
@@ -178,7 +178,7 @@ char *strtok(char *str, char *delim) {
     free(to_free);
     return NULL;
   }
-  while (*last != '\0' && !deli_dict[(int) *last]) {
+  while (*last != '\0' && !deli_dict[(int)*last]) {
     last++;
   }
 

@@ -1,7 +1,7 @@
+#include <drivers/serial.h>
 #include <font.h>
 #include <kernel/text.h>
 #include <kernel/vbe.h>
-#include <kernel/serial.h>
 #include <multiboot.h>
 #include <stdbool.h>
 
@@ -26,14 +26,14 @@ int init_vbe(void *mbi) {
   struct multiboot_tag *tag;
 
   // look for the framebuffer tag
-  for (tag = (struct multiboot_tag *) (mbi + 8);
+  for (tag = (struct multiboot_tag *)(mbi + 8);
        tag->type != MULTIBOOT_TAG_TYPE_END;
-       tag = (struct multiboot_tag *) ((multiboot_uint8_t *) tag
-                                       + ((tag->size + 7) & ~7))) {
+       tag = (struct multiboot_tag *)((multiboot_uint8_t *)tag +
+                                      ((tag->size + 7) & ~7))) {
     if (tag->type == MULTIBOOT_TAG_TYPE_FRAMEBUFFER) {
       struct multiboot_tag_framebuffer *fb =
-          (struct multiboot_tag_framebuffer *) tag;
-      fb_addr = (void *)(uint32_t) fb->common.framebuffer_addr;
+          (struct multiboot_tag_framebuffer *)tag;
+      fb_addr = (void *)(uint32_t)fb->common.framebuffer_addr;
       fb_pitch = fb->common.framebuffer_pitch;
       fb_width = fb->common.framebuffer_width;
       fb_height = fb->common.framebuffer_height;
@@ -120,10 +120,10 @@ void mandelbrot(float left, float top, float xside, float yside, int color) {
   for (int puty = 1; puty <= maxy - 1; puty++) {
     for (int putx = 1; putx <= maxx - 1; putx++) {
       // c_real
-      cx = (float) putx * xscale + left;
+      cx = (float)putx * xscale + left;
 
       // c_imaginary
-      cy = (float) puty * yscale + top;
+      cy = (float)puty * yscale + top;
 
       // z_real
       zx = 0;

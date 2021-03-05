@@ -15,10 +15,10 @@ int get_model(void) {
   return ebx;
 }
 
-char* get_vendor() {
+char *get_vendor() {
   // FIXME: not using regular array because it would allocate
   //        it on the stack
-  uint32_t* string = malloc(5 * sizeof(uint32_t));
+  uint32_t *string = malloc(5 * sizeof(uint32_t));
   cpuid_string(0, string);
 
   return (char *)(string + 1);

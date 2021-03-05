@@ -46,8 +46,9 @@ LDFLAGS=-melf_i386 -nostdlib -T src/arch/$(ARCH)/linker.ld -Map=build/mandelbrot
 
 CSOURCES:=\
 $(wildcard src/kernel/*.c)\
-src/string/string.c\
-$(wildcard src/arch/$(ARCH)/*.c)
+$(wildcard src/drivers/*.c)\
+$(wildcard src/arch/$(ARCH)/*.c)\
+src/string/string.c
 
 ASOURCES:=\
 src/arch/$(ARCH)/boot.S\
@@ -69,7 +70,9 @@ STAGE2=build/stage2_eltorito
 GENISOIMAGE=genisoimage
 
 ISO=build/mandelbrotos.iso
-QEMU=qemu-system-x86_64 -cdrom $(ISO) -serial stdio -hdd hdd2.img
+DRIVE=myimage.raw
+#QEMU=qemu-system-x86_64 -cdrom $(ISO) -serial stdio
+QEMU=qemu-system-x86_64 -hda $(DRIVE) --cdrom $(ISO) -serial stdio
 
 .PHONY: all build clean qemu
 

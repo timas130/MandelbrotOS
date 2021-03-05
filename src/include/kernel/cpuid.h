@@ -27,7 +27,7 @@
 #define CPUID_VENDOR_PARALLELS " lrpepyh vr"
 
 int get_model(void);
-char* get_vendor();
+char *get_vendor();
 int cpuid_string(int code, uint32_t where[4]);
 
 #endif

@@ -104,7 +104,7 @@ void scroll_screen_up() {
     vidmem[tmp] = vidmem[tmp + ((fb_width * (GLYPH_WIDTH + 1)) / 2)];
   }
   drawrect(0, 0, fb_width, border, bg_color);
-  drawrect(0, (int) fb_height - (border + (GLYPH_HEIGHT + 1) + (border - 1)),
+  drawrect(0, (int)fb_height - (border + (GLYPH_HEIGHT + 1) + (border - 1)),
            fb_width, fb_height, bg_color);
 }
 
@@ -116,7 +116,7 @@ void backspace() {
   } else {
     if (y >= 9) {
       y = y - (GLYPH_WIDTH + 1);
-      x = (int) fb_width - border - (GLYPH_WIDTH);
+      x = (int)fb_width - border - (GLYPH_WIDTH);
       put(' ', x, y, bg_color, bg_color);
     }
   }
@@ -424,13 +424,13 @@ int vprintf(const char *format, va_list list) {
       switch (specifier) {
       case 'X':
         base = 16;
-        __attribute__ ((fallthrough));
+        __attribute__((fallthrough));
       case 'x':
         base = base == 10 ? 17 : base;
         if (altForm) {
           displayString("0x", &chars);
         }
-        __attribute__ ((fallthrough));
+        __attribute__((fallthrough));
 
       case 'u': {
         switch (length) {
@@ -612,14 +612,18 @@ int vprintf(const char *format, va_list list) {
         break;
       }
 
-      case 'e': __attribute__ ((fallthrough));
+      case 'e':
+        __attribute__((fallthrough));
       case 'E':
         emode = true;
-        __attribute__ ((fallthrough));
+        __attribute__((fallthrough));
 
-      case 'f': __attribute__ ((fallthrough));
-      case 'F': __attribute__ ((fallthrough));
-      case 'g': __attribute__ ((fallthrough));
+      case 'f':
+        __attribute__((fallthrough));
+      case 'F':
+        __attribute__((fallthrough));
+      case 'g':
+        __attribute__((fallthrough));
       case 'G': {
         double floating = va_arg(list, double);
 

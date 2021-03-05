@@ -1,3 +1,4 @@
+#include <drivers/serial.h>
 #include <font.h>
 #include <kernel/alloc.h>
 #include <kernel/gdt.h>
@@ -9,7 +10,6 @@
 #include <kernel/kshell.h>
 #include <kernel/pit.h>
 #include <kernel/power.h>
-#include <kernel/serial.h>
 #include <kernel/text.h>
 #include <kernel/vbe.h>
 #include <macros.h>
@@ -54,7 +54,7 @@ int kernel_main(unsigned long magic, unsigned long addr) {
   init_check(init_heap(0x00f00000), "Memory allocator", true);
   init_check(kbd_init(), "Keyboard", true);
   set_kbd();
-  
+
   printf("\r\n");
   printf("The keyboard layout is: %s\r\n", kbd);
 

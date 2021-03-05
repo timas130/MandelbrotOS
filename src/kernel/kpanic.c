@@ -1,8 +1,8 @@
+#include <drivers/serial.h>
 #include <font.h>
 #include <kernel/init.h>
 #include <kernel/kbd.h>
 #include <kernel/power.h>
-#include <kernel/serial.h>
 #include <kernel/text.h>
 #include <kernel/vbe.h>
 #include <macros.h>

@@ -19,7 +19,7 @@ void gdt_set_gate(int32_t num, uint32_t base, uint32_t limit, uint8_t access,
 
 int init_gdt() {
   gp.limit = (sizeof(gdt_entry_t) * 5) - 1;
-  gp.base = (uint32_t) &gdt;
+  gp.base = (uint32_t)&gdt;
 
   gdt_set_gate(0, 0, 0, 0, 0); // Null segment
 

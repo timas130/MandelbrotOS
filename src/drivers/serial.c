@@ -1,6 +1,6 @@
-#include "kernel/serial.h"
-#include "hw.h"
-#include "string.h"
+#include <drivers/serial.h>
+#include <hw.h>
+#include <string.h>
 
 int init_serial() {
   outb(PORT + 1, 0x00);

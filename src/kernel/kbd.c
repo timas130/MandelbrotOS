@@ -10,162 +10,155 @@
 #include <string.h>
 
 static uint32_t kb_mode = 0;
-static char kb_map[128] =
-    {
-        0,    0x1b, /* esc */
+static char kb_map[128] = {
+    0,   0x1b, /* esc */
 #ifdef AZERTY
-        '&',  'e',  '"',  '\'',  '(', '-', 'e',  '_', 'c', 'a',
-        ')',  '=',  '\b', '\t', 
-#else 
-        '1', '2', '3', '4', '5', '6', '7', '8', 
-        '9', '0', '-', '=', '\b', '\t',
-#endif
-#ifdef AZERTY
-        'a', 'z',
+    '&', 'e',  '"', '\'', '(', '-', 'e',  '_', 'c', 'a', ')', '=', '\b', '\t',
 #else
-        'q', 'w', 
+    '1',  '2',  '3', '4', '5', '6', '7',  '8', '9', '0', '-', '=', '\b', '\t',
 #endif
-        'e',  'r', 't',
+#ifdef AZERTY
+    'a', 'z',
+#else
+    'q',  'w',
+#endif
+    'e', 'r',  't',
 #ifdef QWERTZ
-        'z',
+    'z',
 #else
-        'y',
+    'y',
 #endif
-        'u',  'i',  'o',  'p',  '[', ']', '\n', 0, /* left ctrl */
+    'u', 'i',  'o', 'p',  '[', ']', '\n', 0, /* left ctrl */
 #ifdef AZERTY
-        'q',
-#else        
-        'a',  
+    'q',
+#else
+    'a',
 #endif
-        's',  'd',  'f',  'g', 'h', 'j',  'k', 'l', 
+    's', 'd',  'f', 'g',  'h', 'j', 'k',  'l',
 #ifdef AZERTY
-        'm', '#', '$', 0, /* left shift */
-        '<',
+    'm', '#',  '$', 0, /* left shift */
+    '<',
 #else
-        ';', '\'', '`',
-        0, /* left shift */
-        '\\',
-#endif
-        
-#ifdef QWERTZ
-        'y',
-#elif defined(AZERTY)
-        'w',
-#else
-        'z',
+    ';',  '\'', '`', 0, /* left shift */
+    '\\',
 #endif
 
-        'x',  'c',  'v',  'b',  'n', 
-#ifdef AZERTY
-        ',', ';', ':', '!',
+#ifdef QWERTZ
+    'y',
+#elif defined(AZERTY)
+    'w',
 #else
-        'm', ',',  '.', '/', 
+    'z',
 #endif
-        0, /* right shift */
-        '*',  0,                                             /* alt */
-        ' ',                                                 /* space*/
-        0,                                                   /* capslock */
-        0,    0,    0,    0,    0,   0,   0,    0,   0,   0, /* f1 ... f10 */
-        0,                                                   /* num lock*/
-        0,                                                   /* scroll Lock */
-        0,                                                   /* home key */
-        0,                                                   /* up arrow */
-        0,                                                   /* page up */
-        '-',  0,                                             /* left arrow */
-        0,    0,                                             /* right arrow */
-        '+',  0,                                             /* end key*/
-        0,                                                   /* down arrow */
-        0,                                                   /* page down */
-        0,                                                   /* insert key */
-        0,                                                   /* delete key */
-        0,    0,    0,    0,                                 /* f11 key */
-        0,                                                   /* f12 key */
-        0, /* all other keys are undefined */
+
+    'x', 'c',  'v', 'b',  'n',
+#ifdef AZERTY
+    ',', ';',  ':', '!',
+#else
+    'm',  ',',  '.', '/',
+#endif
+    0,                                                 /* right shift */
+    '*', 0,                                            /* alt */
+    ' ',                                               /* space*/
+    0,                                                 /* capslock */
+    0,   0,    0,   0,    0,   0,   0,    0,   0,   0, /* f1 ... f10 */
+    0,                                                 /* num lock*/
+    0,                                                 /* scroll Lock */
+    0,                                                 /* home key */
+    0,                                                 /* up arrow */
+    0,                                                 /* page up */
+    '-', 0,                                            /* left arrow */
+    0,   0,                                            /* right arrow */
+    '+', 0,                                            /* end key*/
+    0,                                                 /* down arrow */
+    0,                                                 /* page down */
+    0,                                                 /* insert key */
+    0,                                                 /* delete key */
+    0,   0,    0,   0,                                 /* f11 key */
+    0,                                                 /* f12 key */
+    0, /* all other keys are undefined */
 };
 
-static char kb_shift_map[128] =
-    {
-        0,    0x1b, /* esc */
+static char kb_shift_map[128] = {
+    0,   0x1b, /* esc */
 #ifdef AZERTY
-        '1', '2', '3', '4', '5', '6', '7', '8', 
-        '9', '0', 0, '+', '\b', '\t',
-#else 
-        '!',  '@',  '#',  '$',  '%', '^', '&',  '*', '(', ')',
-        '_',  '+',  '\b', '\t',
+    '1', '2',  '3', '4', '5', '6', '7',  '8', '9', '0', 0, '+', '\b', '\t',
+#else
+    '!', '@',  '#', '$', '%', '^', '&',  '*', '(', ')', '_', '+', '\b', '\t',
 #endif
 #ifdef AZERTY
-        'A', 'Z',
-#else 
-        'Q', 'W', 
-#endif      
-        'E',  'R', 'T',
+    'A', 'Z',
+#else
+    'Q', 'W',
+#endif
+    'E', 'R',  'T',
 #ifdef QWERTZ
-        'Z',
+    'Z',
 #else
-        'Y',
+    'Y',
 #endif
-        'U',  'I',  'O',  'P',  '{', '}', '\n', 0, /* left control */
+    'U', 'I',  'O', 'P', '{', '}', '\n', 0, /* left control */
 #ifdef AZERTY
-        'Q',
+    'Q',
 #else
-        'A',  
-#endif        
-        'S',  'D',  'F',  'G', 'H', 'J',  'K', 'L', 
+    'A',
+#endif
+    'S', 'D',  'F', 'G', 'H', 'J', 'K',  'L',
 #ifdef AZERTY
-        'M', '#', '*',  0, /* left shift */
-        '>',
+    'M', '#',  '*', 0, /* left shift */
+    '>',
 #else
-        ':', '\"', '~',  0, /* left shift */
-        '|',
+    ':', '\"', '~', 0, /* left shift */
+    '|',
 #endif
 
 #ifdef QWERTZ
-        'Z',
+    'Z',
 #elif defined(AZERTY)
-        'W',
+    'W',
 #else
-        'Y',
+    'Y',
 #endif
-        'X',  'C',  'V',  'B',  'N', 
+    'X', 'C',  'V', 'B', 'N',
 #ifdef AZERTY
-        '?',  '.', '/', 0, 0, /* right shift */
+    '?', '.',  '/', 0,   0, /* right shift */
 #else
-        'M', '<',  '>', '?', 0, /* right shift */
+    'M', '<',  '>', '?', 0, /* right shift */
 #endif
-        '*',  0,                                             /* alt */
-        ' ',                                                 /* space bar */
-        0,                                                   /* caps lock */
-        0,    0,    0,    0,    0,   0,   0,    0,   0,   0, /* f1 ... f10 */
-        0,                                                   /* num lock*/
-        0,                                                   /* scroll lock */
-        0,                                                   /* home key */
-        0,                                                   /* up arrow */
-        0,                                                   /* page up */
-        '-',  0,                                             /* left arrow */
-        0,    0,                                             /* right arrow */
-        '+',  0,                                             /* end key*/
-        0,                                                   /* down arrow */
-        0,                                                   /* page down */
-        0,                                                   /* insert key */
-        0,                                                   /* delete key */
-        0,    0,    0,    0,                                 /* f11 key */
-        0,                                                   /* f12 key */
-        0, /* all other keys are undefined */
+    '*', 0,                                           /* alt */
+    ' ',                                              /* space bar */
+    0,                                                /* caps lock */
+    0,   0,    0,   0,   0,   0,   0,    0,   0,   0, /* f1 ... f10 */
+    0,                                                /* num lock*/
+    0,                                                /* scroll lock */
+    0,                                                /* home key */
+    0,                                                /* up arrow */
+    0,                                                /* page up */
+    '-', 0,                                           /* left arrow */
+    0,   0,                                           /* right arrow */
+    '+', 0,                                           /* end key*/
+    0,                                                /* down arrow */
+    0,                                                /* page down */
+    0,                                                /* insert key */
+    0,                                                /* delete key */
+    0,   0,    0,   0,                                /* f11 key */
+    0,                                                /* f12 key */
+    0, /* all other keys are undefined */
 };
 
 char currkey;
-char* kbd;
+char *kbd;
 
-void set_kbd(){
+void set_kbd() {
   kbd = malloc(sizeof(char) * 10);
   kbd =
-  #ifdef QWERTZ
-        "qwertz";
-  #elif defined(AZERTY)
-        "azerty";
-  #else
-        "qwerty";
-  #endif
+#ifdef QWERTZ
+      "qwertz";
+#elif defined(AZERTY)
+      "azerty";
+#else
+      "qwerty";
+#endif
 }
 
 static char shift(char sc) {
