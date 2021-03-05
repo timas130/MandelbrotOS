@@ -10,10 +10,10 @@ struct pio_bus {
   uint8_t selected_drive;
 };
 
-bool has_ata_device(struct pio_bus *device);
-int ata_pio_read(uint16_t *target, uint32_t lba, uint8_t sectors,
+bool has_ata_drive(struct pio_bus *device, bool slave);
+int ata_pio_read(uint16_t *target, uint64_t lba, uint16_t sectors,
                  struct pio_bus *device, bool slave);
-int ata_pio_write(uint16_t *bytes, uint32_t lba, uint8_t sectors,
+int ata_pio_write(uint16_t *bytes, uint64_t lba, uint16_t sectors,
                   struct pio_bus *device, bool slave);
 
 #define PIO_PORT_DATA 0
@@ -41,7 +41,7 @@ int ata_pio_write(uint16_t *bytes, uint32_t lba, uint8_t sectors,
 #define PIO_STATUS_BSY  1 << 7
 
 #define PIO_COMMAND_IDENTIFY 0xEC
-#define PIO_COMMAND_READ_SECTORS 0x20
-#define PIO_COMMAND_WRITE_SECTORS 0x30
+#define PIO_COMMAND_READ_SECTORS_EXT 0x24
+#define PIO_COMMAND_WRITE_SECTORS_EXT 0x34
 
 #endif // __ATAPIO_H__

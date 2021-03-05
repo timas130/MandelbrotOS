@@ -15,23 +15,8 @@ void ata_wait_drq(struct pio_bus *device) {
   }
 }
 
-bool has_ata_device(struct pio_bus *device) {
-  // FIXME: doesn't work for primary bus on qemu :(
-  outb(device->base_port + PIO_PORT_SECTOR_COUNT, 0);
-  outb(device->base_port + PIO_PORT_LBA_LO, 0);
-  outb(device->base_port + PIO_PORT_LBA_MID, 0);
-  outb(device->base_port + PIO_PORT_LBA_HI, 0);
-  outb(device->base_port + PIO_PORT_COMMAND, PIO_COMMAND_IDENTIFY);
-
-  uint8_t error = inb(device->base_port + PIO_PORT_ERROR);
-  uint8_t status = inb(device->base_port + PIO_PORT_STATUS);
-  return ! (status == 0 || error != 0);
-}
-
-int ata_pio_read(uint16_t *target, uint32_t lba, uint8_t sectors,
-                 struct pio_bus *device, bool slave) {
-  uint8_t drive = 0xE0 | (slave << 4) | ((lba >> 24) & 0x0F);
-  printf("drive: %x\r\n", drive);
+void ata_pio_select_drive(struct pio_bus *device, bool slave) {
+  uint8_t drive = 0x40 | (slave << 4);
   if (device->selected_drive != drive) {
     outb(device->base_port + PIO_PORT_DRIVE_HEAD, drive);
     device->selected_drive = drive;
@@ -39,20 +24,48 @@ int ata_pio_read(uint16_t *target, uint32_t lba, uint8_t sectors,
       inb(device->base_control_port + PIO_CONTROL_STATUS);
     }
   }
-
-  ata_wait_bsy(device);
-
+}
+void ata_pio_send_lba48(struct pio_bus *device, uint64_t lba,
+                        uint16_t sectors) {
+  outb(device->base_port + PIO_PORT_SECTOR_COUNT, sectors >> 8);
+  outb(device->base_port + PIO_PORT_LBA_LO, lba >> 24);
+  outb(device->base_port + PIO_PORT_LBA_MID, lba >> 32);
+  outb(device->base_port + PIO_PORT_LBA_HI, lba >> 40);
   outb(device->base_port + PIO_PORT_SECTOR_COUNT, sectors);
-  outb(device->base_port + PIO_PORT_LBA_LO,
-       (uint8_t) lba);
-  outb(device->base_port + PIO_PORT_LBA_MID,
-       (uint8_t) (lba >> 8));
-  outb(device->base_port + PIO_PORT_LBA_HI,
-       (uint8_t) (lba >> 16));
+  outb(device->base_port + PIO_PORT_LBA_LO, lba);
+  outb(device->base_port + PIO_PORT_LBA_MID, lba >> 8);
+  outb(device->base_port + PIO_PORT_LBA_HI, lba >> 16);
+}
 
-  outb(device->base_port + PIO_PORT_COMMAND, PIO_COMMAND_READ_SECTORS);
+// FIXME: this is completely broken now
+bool has_ata_drive(struct pio_bus *device, bool slave) {
+  if (! slave) outb(device->base_port + PIO_PORT_DRIVE_HEAD, 0xA0);
+  else outb(device->base_port + PIO_PORT_DRIVE_HEAD, 0xB0);
 
-  for (int i = 0; i < sectors; ++i) {
+  for (int i = 0; i < 4; ++i) {
+    inb(device->base_control_port + PIO_CONTROL_STATUS);
+  }
+
+  outb(device->base_port + PIO_PORT_SECTOR_COUNT, 0);
+  outb(device->base_port + PIO_PORT_LBA_LO, 0);
+  outb(device->base_port + PIO_PORT_LBA_MID, 0);
+  outb(device->base_port + PIO_PORT_LBA_HI, 0);
+  outb(device->base_port + PIO_PORT_COMMAND, PIO_COMMAND_IDENTIFY);
+
+  uint8_t status = inb(device->base_port + PIO_PORT_STATUS);
+  return status != 0;
+}
+
+int ata_pio_read(uint16_t *target, uint64_t lba, uint16_t sectors,
+                 struct pio_bus *device, bool slave) {
+  ata_pio_select_drive(device, slave);
+  ata_wait_bsy(device);
+  ata_pio_send_lba48(device, lba, sectors);
+
+  outb(device->base_port + PIO_PORT_COMMAND,
+       PIO_COMMAND_READ_SECTORS_EXT);
+
+  for (unsigned int i = 0; i < sectors; ++i) {
     ata_wait_bsy(device);
     ata_wait_drq(device);
     uint8_t status = inb(device->base_port + PIO_PORT_STATUS);
@@ -73,30 +86,16 @@ int ata_pio_read(uint16_t *target, uint32_t lba, uint8_t sectors,
   return 0;
 }
 
-int ata_pio_write(uint16_t *bytes, uint32_t lba, uint8_t sectors,
+int ata_pio_write(uint16_t *bytes, uint64_t lba, uint16_t sectors,
                   struct pio_bus *device, bool slave) {
-  uint8_t drive = 0xE0 | (slave << 4) | ((lba >> 24) & 0x0F);
-  if (device->selected_drive != drive) {
-    outb(device->base_port + PIO_PORT_DRIVE_HEAD, drive);
-    device->selected_drive = drive;
-    for (int i = 0; i < 4; ++i) {
-      inb(device->base_control_port + PIO_CONTROL_STATUS);
-    }
-  }
-
+  ata_pio_select_drive(device, slave);
   ata_wait_bsy(device);
+  ata_pio_send_lba48(device, lba, sectors);
 
-  outb(device->base_port + PIO_PORT_SECTOR_COUNT, sectors);
-  outb(device->base_port + PIO_PORT_LBA_LO,
-       (uint8_t) lba);
-  outb(device->base_port + PIO_PORT_LBA_MID,
-       (uint8_t) (lba >> 8));
-  outb(device->base_port + PIO_PORT_LBA_HI,
-       (uint8_t) (lba >> 16));
+  outb(device->base_port + PIO_PORT_COMMAND,
+       PIO_COMMAND_WRITE_SECTORS_EXT);
 
-  outb(device->base_port + PIO_PORT_COMMAND, PIO_COMMAND_WRITE_SECTORS);
-
-  for (int i = 0; i < sectors; ++i) {
+  for (unsigned int i = 0; i < sectors; ++i) {
     ata_wait_bsy(device);
     ata_wait_drq(device);
     uint8_t status = inb(device->base_port + PIO_PORT_STATUS);

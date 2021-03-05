@@ -64,7 +64,7 @@ int kernel_main(unsigned long magic, unsigned long addr) {
   bus.base_port = 0x1F0;
   bus.base_control_port = 0x3F6;
   bus.selected_drive = 0;
-  if (has_ata_device(&bus)) {
+  if (has_ata_drive(&bus, true)) {
     serial_writestring("!! >>> ATA DEVICE EXISTS <<< !!\r\n");
     printf("!! >>> ATA DEVICE EXISTS <<< !!\r\n");
   } else {
@@ -77,7 +77,7 @@ int kernel_main(unsigned long magic, unsigned long addr) {
   bus.base_port = 0x170;
   bus.base_control_port = 0x376;
   bus.selected_drive = 0;
-  if (has_ata_device(&bus2)) {
+  if (has_ata_drive(&bus2, false)) {
     serial_writestring("!! >>> ATA DEVICE 2 EXISTS <<< !!\r\n");
     printf("!! >>> ATA DEVICE 2 EXISTS <<< !!\r\n");
   } else {
