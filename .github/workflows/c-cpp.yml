@@ -1,0 +1,23 @@
+name: C/C++ CI
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Install packages
+      run: apt-get install -yqq build-essential nasm xorriso grub-common
+    - name: Make
+      run: make RUNONDONE=0
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v2
+      with:
+        name: MandelbrotOS.iso
+        path: build/mandelbrotos.iso
