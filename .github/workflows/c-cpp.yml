@@ -1,0 +1,30 @@
+name: C/C++ CI
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Build cross-compiler
+      run: if [ ! -d cross/ ]; then ./build-cross-compiler.sh; fi
+    - name: Install packages
+      run: sudo apt-get install -yqq build-essential nasm xorriso grub-common mtools
+    - name: Make
+      run: make RUNONDONE=0
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v2
+      with:
+        name: MandelbrotOS.iso
+        path: build/mandelbrotos.iso
+    - name: Cache
+      uses: actions/cache@v2.1.4
+      with:
+        path: cross/
+        key: crosscompile # the same across all branches
