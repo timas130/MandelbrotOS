@@ -42,5 +42,6 @@ void ata_pio_write(uint16_t *bytes, uint32_t lba, uint8_t sectors,
 
 #define PIO_COMMAND_IDENTIFY 0xEC
 #define PIO_COMMAND_READ_SECTORS 0x20
+#define PIO_COMMAND_WRITE_SECTORS 0x30
 
 #endif // __ATAPIO_H__

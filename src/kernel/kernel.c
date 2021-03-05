@@ -77,7 +77,7 @@ int kernel_main(unsigned long magic, unsigned long addr) {
   bus.base_port = 0x170;
   bus.base_control_port = 0x376;
   bus.selected_drive = 0;
-  if (has_ata_device(&bus)) {
+  if (has_ata_device(&bus2)) {
     serial_writestring("!! >>> ATA DEVICE 2 EXISTS <<< !!\r\n");
     printf("!! >>> ATA DEVICE 2 EXISTS <<< !!\r\n");
   } else {
@@ -86,7 +86,22 @@ int kernel_main(unsigned long magic, unsigned long addr) {
   }
 
   uint16_t target[256];
-  ata_pio_read(target, 0, 1, &bus, false);
+  ata_pio_read(target, 10, 1, &bus, true);
+
+  for (int i = 0; i < 256; ++i) {
+    printf("%x ", target[i]);
+  }
+  printf("\r\n");
+
+  printf("writing\r\n");
+  uint16_t bytes[256];
+  bytes[0] = 0xdead;
+  for (int i = 1; i < 256; ++i) {
+    bytes[i] = i;
+  }
+  ata_pio_write(bytes, 10, 1, &bus, true);
+
+  ata_pio_read(target, 10, 1, &bus, true);
 
   for (int i = 0; i < 256; ++i) {
     printf("%x ", target[i]);

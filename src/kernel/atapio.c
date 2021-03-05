@@ -39,7 +39,6 @@ void ata_pio_read(uint16_t *target, uint32_t lba, uint8_t sectors,
   }
 
   ata_wait_bsy(device);
-  outb(device->base_port + PIO_PORT_FEATURES, 0x00);
 
   outb(device->base_port + PIO_PORT_SECTOR_COUNT, sectors);
   outb(device->base_port + PIO_PORT_LBA_LO,
@@ -52,14 +51,8 @@ void ata_pio_read(uint16_t *target, uint32_t lba, uint8_t sectors,
   outb(device->base_port + PIO_PORT_COMMAND, PIO_COMMAND_READ_SECTORS);
 
   for (int i = 0; i < sectors; ++i) {
-    printf("cp1 ");
     ata_wait_bsy(device);
-    printf("cp2 ");
-    printf("status: %x\r\n", inb(device->base_port + PIO_PORT_STATUS));
     ata_wait_drq(device);
-    printf("cp3 ");
-    printf("status: %x\r\n", inb(device->base_port + PIO_PORT_STATUS));
-    printf("error: %x\r\n", inb(device->base_port + PIO_PORT_ERROR));
     for (int j = 0; j < 256; ++j) {
       target[j] = inw(device->base_port + PIO_PORT_DATA);
     }
@@ -69,5 +62,38 @@ void ata_pio_read(uint16_t *target, uint32_t lba, uint8_t sectors,
 
 void ata_pio_write(uint16_t *bytes, uint32_t lba, uint8_t sectors,
                    struct pio_bus *device, bool slave) {
+  uint8_t drive = 0xE0 | (slave << 4) | ((lba >> 24) & 0x0F);
+  printf("drive: %x\r\n", drive);
+  if (device->selected_drive != drive) {
+    outb(device->base_port + PIO_PORT_DRIVE_HEAD, drive);
+    device->selected_drive = drive;
+    for (int i = 0; i < 4; ++i) {
+      inb(device->base_control_port + PIO_CONTROL_STATUS);
+    }
+  }
 
+  ata_wait_bsy(device);
+
+  outb(device->base_port + PIO_PORT_SECTOR_COUNT, sectors);
+  outb(device->base_port + PIO_PORT_LBA_LO,
+       (uint8_t) lba);
+  outb(device->base_port + PIO_PORT_LBA_MID,
+       (uint8_t) (lba >> 8));
+  outb(device->base_port + PIO_PORT_LBA_HI,
+       (uint8_t) (lba >> 16));
+
+  outb(device->base_port + PIO_PORT_COMMAND, PIO_COMMAND_WRITE_SECTORS);
+
+  for (int i = 0; i < sectors; ++i) {
+    ata_wait_bsy(device);
+    ata_wait_drq(device);
+    uint8_t status = inb(device->base_port + PIO_PORT_STATUS);
+//    if (status & PIO_STATUS_ERR || status & PIO_STATUS_DF) {
+      printf("status: %x error: %x\r\n", status, inb(device->base_port + PIO_PORT_ERROR));
+//    }
+    for (int j = 0; j < 256; ++j) {
+      outw(device->base_port + PIO_PORT_DATA, bytes[j]);
+    }
+    bytes += 256;
+  }
 }
