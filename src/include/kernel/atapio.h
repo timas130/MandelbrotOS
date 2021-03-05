@@ -11,10 +11,10 @@ struct pio_bus {
 };
 
 bool has_ata_device(struct pio_bus *device);
-void ata_pio_read(uint16_t *target, uint32_t lba, uint8_t sectors,
+int ata_pio_read(uint16_t *target, uint32_t lba, uint8_t sectors,
+                 struct pio_bus *device, bool slave);
+int ata_pio_write(uint16_t *bytes, uint32_t lba, uint8_t sectors,
                   struct pio_bus *device, bool slave);
-void ata_pio_write(uint16_t *bytes, uint32_t lba, uint8_t sectors,
-                   struct pio_bus *device, bool slave);
 
 #define PIO_PORT_DATA 0
 #define PIO_PORT_ERROR 1

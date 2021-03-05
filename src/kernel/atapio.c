@@ -16,18 +16,20 @@ void ata_wait_drq(struct pio_bus *device) {
 }
 
 bool has_ata_device(struct pio_bus *device) {
-    outb(device->base_port + PIO_PORT_SECTOR_COUNT, 0);
-    outb(device->base_port + PIO_PORT_LBA_LO, 0);
-    outb(device->base_port + PIO_PORT_LBA_MID, 0);
-    outb(device->base_port + PIO_PORT_LBA_HI, 0);
-    outb(device->base_port + PIO_PORT_COMMAND, PIO_COMMAND_IDENTIFY);
+  // FIXME: doesn't work for primary bus on qemu :(
+  outb(device->base_port + PIO_PORT_SECTOR_COUNT, 0);
+  outb(device->base_port + PIO_PORT_LBA_LO, 0);
+  outb(device->base_port + PIO_PORT_LBA_MID, 0);
+  outb(device->base_port + PIO_PORT_LBA_HI, 0);
+  outb(device->base_port + PIO_PORT_COMMAND, PIO_COMMAND_IDENTIFY);
 
-    uint8_t state = inb(device->base_port + PIO_PORT_ERROR);
-    return ! (inb(device->base_port + PIO_PORT_STATUS) == 0 || state != 0);
+  uint8_t error = inb(device->base_port + PIO_PORT_ERROR);
+  uint8_t status = inb(device->base_port + PIO_PORT_STATUS);
+  return ! (status == 0 || error != 0);
 }
 
-void ata_pio_read(uint16_t *target, uint32_t lba, uint8_t sectors,
-                  struct pio_bus *device, bool slave) {
+int ata_pio_read(uint16_t *target, uint32_t lba, uint8_t sectors,
+                 struct pio_bus *device, bool slave) {
   uint8_t drive = 0xE0 | (slave << 4) | ((lba >> 24) & 0x0F);
   printf("drive: %x\r\n", drive);
   if (device->selected_drive != drive) {
@@ -53,17 +55,27 @@ void ata_pio_read(uint16_t *target, uint32_t lba, uint8_t sectors,
   for (int i = 0; i < sectors; ++i) {
     ata_wait_bsy(device);
     ata_wait_drq(device);
+    uint8_t status = inb(device->base_port + PIO_PORT_STATUS);
+    if (status & PIO_STATUS_ERR) {
+      printf("ata error: status: %x error: %x\r\n",
+             status, inb(device->base_port + PIO_PORT_ERROR));
+      return 1;
+    }
+    if (status & PIO_STATUS_DF) {
+      printf("ata drive fault: status: %x", status);
+      return 2;
+    }
     for (int j = 0; j < 256; ++j) {
       target[j] = inw(device->base_port + PIO_PORT_DATA);
     }
     target += 256;
   }
+  return 0;
 }
 
-void ata_pio_write(uint16_t *bytes, uint32_t lba, uint8_t sectors,
-                   struct pio_bus *device, bool slave) {
+int ata_pio_write(uint16_t *bytes, uint32_t lba, uint8_t sectors,
+                  struct pio_bus *device, bool slave) {
   uint8_t drive = 0xE0 | (slave << 4) | ((lba >> 24) & 0x0F);
-  printf("drive: %x\r\n", drive);
   if (device->selected_drive != drive) {
     outb(device->base_port + PIO_PORT_DRIVE_HEAD, drive);
     device->selected_drive = drive;
@@ -88,12 +100,19 @@ void ata_pio_write(uint16_t *bytes, uint32_t lba, uint8_t sectors,
     ata_wait_bsy(device);
     ata_wait_drq(device);
     uint8_t status = inb(device->base_port + PIO_PORT_STATUS);
-//    if (status & PIO_STATUS_ERR || status & PIO_STATUS_DF) {
-      printf("status: %x error: %x\r\n", status, inb(device->base_port + PIO_PORT_ERROR));
-//    }
+    if (status & PIO_STATUS_ERR) {
+      printf("ata error: status: %x error: %x\r\n",
+             status, inb(device->base_port + PIO_PORT_ERROR));
+      return 1;
+    }
+    if (status & PIO_STATUS_DF) {
+      printf("ata drive fault: status: %x", status);
+      return 2;
+    }
     for (int j = 0; j < 256; ++j) {
       outw(device->base_port + PIO_PORT_DATA, bytes[j]);
     }
     bytes += 256;
   }
+  return 0;
 }
