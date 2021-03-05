@@ -13,7 +13,7 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - name: Build cross-compiler
-      run: if [ ! -d cross/ ]; then ./build-cross-compiler.sh fi
+      run: if [ ! -d cross/ ]; then ./build-cross-compiler.sh; fi
     - name: Install packages
       run: sudo apt-get install -yqq build-essential nasm xorriso grub-common
     - name: Make
