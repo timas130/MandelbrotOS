@@ -19,11 +19,13 @@ It's like tracing OS history, but with modern knowledge and without a lot of bud
 - We need a filesystem. We are planning to use USTAR.
 
 # Build Requirements (Arch/Manjaro package names)
-- `build-essential`
+- `base-devel`
 - `qemu`
 - `nasm`
 - `xorriso`
 - `mtools`
+
+On Debian based distros, replace `base-devel` with `build-essential`.
 
 # Running
 You'll need to have a cross-compiler, build one using `./build-cross-compiler.sh`.
