@@ -42,8 +42,8 @@ rm -rf build-gcc build-binutils
 mkdir build-binutils
 cd build-binutils
 ../binutils-$BINUTILSVERSION/configure --target=$TARGET --prefix="$PREFIX" --with-sysroot --disable-nls --disable-werror
-make
-make install
+make -j5
+make install -j5
 cd ..
 
 cd gcc-$GCCVERSION
@@ -52,8 +52,8 @@ cd ..
 mkdir build-gcc
 cd build-gcc
 ../gcc-$GCCVERSION/configure --target=$TARGET --prefix="$PREFIX" --disable-nls --enable-languages=c --without-headers
-make all-gcc
-make all-target-libgcc
-make install-gcc
-make install-target-libgcc
+make all-gcc -j5
+make all-target-libgcc -j5
+make install-gcc -j5
+make install-target-libgcc -j5
 cd ..

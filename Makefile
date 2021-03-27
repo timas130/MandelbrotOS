@@ -47,6 +47,8 @@ $(OS): $(KERNEL)
 	@ echfs-utils -g -p0 $@ quick-format 512
 	@ echo "[ECHFS] resources/limine.cfg"
 	@ echfs-utils -g -p0 $@ import resources/limine.cfg boot/limine.cfg
+	@ echo "[ECHFS] resources/limine.sys"
+	@ echfs-utils -g -p0 $@ import resources/limine.sys boot/limine.sys
 	@ echo "[ECHFS] boot/"
 	@ echfs-utils -g -p0 $@ import $< boot/$<
 	@ echo "[ECHFS] foo.txt(just for testing)"

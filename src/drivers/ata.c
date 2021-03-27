@@ -1,12 +1,11 @@
 #include <drivers/ata.h>
-#include <hw.h>
+#include <kernel/hw.h>
 
-void ata_wait_bsy(drive_t *device) {
-  while (inb(device->base_port + ATA_PORT_STATUS) & ATA_STATUS_BSY)
-    ;
+void ata_wait_bsy(ata_device_t *device) {
+  while (inb(device->base_port + ATA_PORT_STATUS) & ATA_STATUS_BSY);
 }
 
-bool ata_wait_drq(drive_t *device) {
+bool ata_wait_drq(ata_device_t *device) {
   while (true) {
     uint8_t status = inb(device->base_port + ATA_PORT_STATUS);
     if (status & ATA_STATUS_DRQ)
@@ -16,7 +15,7 @@ bool ata_wait_drq(drive_t *device) {
   }
 }
 
-void ata_pio_send_lba48(drive_t *device, uint64_t lba, uint16_t sectors) {
+void ata_pio_send_lba48(ata_device_t *device, uint64_t lba, uint16_t sectors) {
   outb(device->base_port + ATA_PORT_SECTOR_COUNT, sectors >> 8);
   outb(device->base_port + ATA_PORT_LBA_LO, lba >> 24);
   outb(device->base_port + ATA_PORT_LBA_MID, lba >> 32);
@@ -28,7 +27,7 @@ void ata_pio_send_lba48(drive_t *device, uint64_t lba, uint16_t sectors) {
 }
 
 // FIXME: This is completely broken
-bool has_ata_drive(drive_t *device, bool slave) {
+bool ata_pio_present(ata_device_t *device, bool slave) {
   // FIXME: This piece breaks it
   // if (! slave) outb(device->base_port + ATA_PORT_DRIVE_HEAD, 0xA0);
   // else outb(device->base_port + ATA_PORT_DRIVE_HEAD, 0xB0);
@@ -48,56 +47,98 @@ bool has_ata_drive(drive_t *device, bool slave) {
   return status != 0;
 }
 
-int ata_pio_read(uint16_t *target, uint64_t lba, uint16_t sectors,
-                 drive_t *device) {
-  ata_wait_bsy(device);
-  ata_pio_send_lba48(device, lba, sectors);
+int ata_pio_read_lba(ata_device_t *device, void *data,
+                     uint64_t lba, uint64_t sectors) {
+  uint16_t *target = (uint16_t *)(data);
 
-  outb(device->base_port + ATA_PORT_COMMAND, ATA_COMMAND_READ_SECTORS_EXT);
+  while (sectors) {
+    uint16_t sectors_lo = (uint16_t)(sectors > 0xFFFF ? 0xFFFF : sectors);
 
-  for (unsigned int i = 0; i < sectors; i++) {
     ata_wait_bsy(device);
-    if (!ata_wait_drq(device)) {
-      uint8_t status = inb(device->base_port + ATA_PORT_STATUS);
-      if (status & ATA_STATUS_ERR) {
-        return 1;
+    ata_pio_send_lba48(device, lba, sectors_lo);
+
+    outb(device->base_port + ATA_PORT_COMMAND, ATA_COMMAND_READ_SECTORS_EXT);
+
+    for (uint16_t i = 0; i < sectors_lo; i++) {
+      ata_wait_bsy(device);
+    
+      if (!ata_wait_drq(device)) {
+        uint8_t status = inb(device->base_port + ATA_PORT_STATUS);
+      
+        if (status & ATA_STATUS_ERR) return 1;
+        if (status & ATA_STATUS_DF) return 2;
       }
-      if (status & ATA_STATUS_DF) {
-        return 2;
-      }
+    
+      for (int j = 0; j < 256; j++) 
+        target[j] = inw(device->base_port + ATA_PORT_DATA);
+    
+      target += 256;
+
+      lba += sectors_lo;
+      sectors -= sectors_lo;
     }
-    for (int j = 0; j < 512; j+=2){
-      uint16_t value = inw(device->base_port + ATA_PORT_DATA);
-      target[j] = value & 0xFF;
-      target[j+1] = (value >> 8) & 0xFF;
-    }
-    target += 512;
   }
+  
   return 0;
 }
 
-int ata_pio_write(uint16_t *bytes, uint64_t lba, uint16_t sectors,
-                  drive_t *device) {
-  ata_wait_bsy(device);
-  ata_pio_send_lba48(device, lba, sectors);
-
-  outb(device->base_port + ATA_PORT_COMMAND, ATA_COMMAND_WRITE_SECTORS_EXT);
-
-  for (unsigned int i = 0; i < sectors; ++i) {
+int ata_pio_write_lba(ata_device_t *device, void *data, 
+                      uint64_t lba, uint64_t sectors) {
+  uint16_t *words = (uint16_t *)(data);
+  
+  while (sectors) {
+    uint16_t sectors_lo = (uint16_t)(sectors > 0xFFFF ? 0xFFFF : sectors);
+  
     ata_wait_bsy(device);
-    if (!ata_wait_drq(device)) {
-      uint8_t status = inb(device->base_port + ATA_PORT_STATUS);
-      if (status & ATA_STATUS_ERR) {
-        return 1;
+    ata_pio_send_lba48(device, lba, sectors_lo);
+
+    outb(device->base_port + ATA_PORT_COMMAND, ATA_COMMAND_WRITE_SECTORS_EXT);
+
+    for (uint16_t i = 0; i < sectors_lo; i++) {
+      ata_wait_bsy(device);
+
+      if (!ata_wait_drq(device)) {
+        uint8_t status = inb(device->base_port + ATA_PORT_STATUS);
+
+        if (status & ATA_STATUS_ERR) return 1;
+        if (status & ATA_STATUS_DF) return 2;
       }
-      if (status & ATA_STATUS_DF) {
-        return 2;
-      }
+    
+      for (int j = 0; j < 256; j++)
+        outw(device->base_port + ATA_PORT_DATA, words[j]);
+    
+      words += 256;
+
+      lba += sectors_lo;
+      sectors -= sectors_lo;
     }
-    for (int j = 0; j < 256; ++j) {
-      outw(device->base_port + ATA_PORT_DATA, bytes[j]);
-    }
-    bytes += 256;
   }
+  
   return 0;
+}
+
+// Never use this function directly, use device_t.read instead.
+int ata_pio_read(void *device, void *data, uint64_t offset,
+                 uint64_t size) {
+  // TODO: Read size/512, return size bytes ignoring the rest
+
+  return 1; // Success
+}
+
+// Never use this function directly, use device_t.write instead.
+int ata_pio_write(void *device, void *data, uint64_t offset,
+                  uint64_t size) {
+  // TODO: Write size/512 sectors with size bytes leaving the
+  // rest intact
+
+  return 1; // Success
+}
+
+void ata_pio_device_init(device_t *device, uint16_t base_port,
+                         uint16_t base_control_port) {
+  device->read = ata_pio_read;
+  device->write = ata_pio_write;
+  // TODO: device->get_size = ...;
+
+  // TODO: Allocating enough bytes for ata_device_t on device
 }
