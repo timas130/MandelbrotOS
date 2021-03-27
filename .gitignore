@@ -15,5 +15,7 @@
 *.hdd
 
 cross/
+build/
 echfs/
 limine/
+bochs.log
