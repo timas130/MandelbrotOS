@@ -1,5 +1,6 @@
 #include <kernel/idt.h>
 #include <string.h>
+#include <stdbool.h>
 
 static idt_entry_t idt[256];
 static idt_ptr_t idtp;
@@ -22,9 +23,14 @@ void set_entry(idt_entry_t *entry, void (*func)()) {
 // 3. Add a set_entry call in init_idt() like this:
 //    set_entry(&idt[idt_v_double_fault], double_fault_asm_idt_handler);
 
+static bool testing_interrupts = false;
+static bool test_succeded = false;
+
 IDT_HANDLER(breakpoint, {
-  printf("breakpoint!\r\n");
-  // TODO: do something
+  if (testing_interrupts) {
+    test_succeded = true;
+    return;
+  } else printf("breakpoint!\r\n");
 })
 STUB_IDT_HANDLER(double_fault)
 
@@ -38,6 +44,14 @@ int init_idt() {
   idtp.base = (uint64_t) &idt;
 
   __asm__ volatile("lidt %0; sti" :: "m"(idtp));
+  testing_interrupts = true;
+  test_succeded = false;
+  asm volatile("int3");
+  testing_interrupts = false;
+  if (! test_succeded) {
+    printf("failed to enable interrupts\r\n");
+    asm volatile("cli; hlt");
+  }
 
   return 0;
 }
