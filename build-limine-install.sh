@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
 
-git clone https://github.com/limine-bootloader/limine.git --branch=v1.0.8
-cd limine && make && sudo make install
+git clone https://github.com/MandelbrotOS/limine.git --branch=trunk
+cd limine && make toolchain && make && sudo make install && cd ..
+cp limine/bin/limine.sys resources/limine.sys

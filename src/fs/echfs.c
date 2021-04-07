@@ -5,7 +5,7 @@
 
 echfs_t echfs_get_fs(device_t device) {
   echfs_table_t table;
-  device.read(device, 0, (uint8_t *)(&table), sizeof(echfs_table_t));
+  device.read(device.device, 0, (uint64_t)(&table), sizeof(echfs_table_t));
 
   echfs_t fs = (echfs_t){
       table.block_cnt, table.dir_block_cnt, table.block_size, 0, 0, 0};
@@ -22,10 +22,12 @@ echfs_t echfs_get_fs(device_t device) {
 uint64_t echfs_load_block(device_t device, echfs_t fs, uint8_t *buffer,
                           uint64_t block) {
   uint64_t next_block;
-  device.read(device, fs.alloc_offset + block * sizeof(uint64_t),
-              (uint8_t *)(&next_block), sizeof(uint64_t));
+  device.read(device.device,
+              (void *)(fs.alloc_offset + block * sizeof(uint64_t)),
+              (uint64_t)(&next_block), sizeof(uint64_t));
 
-  device.read(device, block * fs.block_size, buffer, fs.block_size);
+  device.read(device.device, (void *)(block * fs.block_size), (uint64_t)buffer,
+              fs.block_size);
 
   return next_block;
 }
@@ -35,8 +37,9 @@ echfs_entry_t echfs_find(device_t device, echfs_t fs, uint64_t dir,
   echfs_entry_t entry;
 
   for (uint64_t i = 0; i < fs.dir_cnt; i++) {
-    device.read(device, fs.dir_offset + i * sizeof(echfs_entry_t),
-                (uint8_t *)(&entry), sizeof(echfs_entry_t));
+    device.read(device.device,
+                (void *)(fs.dir_offset + i * sizeof(echfs_entry_t)),
+                (uint64_t)(&entry), sizeof(echfs_entry_t));
 
     if (!entry.parent_id)
       break;
