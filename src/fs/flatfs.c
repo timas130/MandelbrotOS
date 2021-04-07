@@ -5,7 +5,7 @@
 
 flatfs_t flatfs_get_fs(device_t device) {
   flatfs_t fs;
-  device.read(device, 512 - sizeof(flatfs_t), (uint8_t *)(&fs),
+  device.read(device.device, (void*)512 - sizeof(flatfs_t), (uint64_t)(&fs),
               sizeof(flatfs_t));
 
   return fs;
@@ -13,7 +13,7 @@ flatfs_t flatfs_get_fs(device_t device) {
 
 flatfs_header_t flatfs_get_header(device_t device, uint64_t header_ptr) {
   flatfs_header_t header;
-  if (!device.read(device, header_ptr << 9, (uint8_t *)(&header),
+  if (!device.read(device.device, (void *)(header_ptr << 9), (uint64_t)(&header),
                    sizeof(flatfs_header_t)))
     header.type = FLAT_TYPE_NULL;
 
@@ -22,7 +22,7 @@ flatfs_header_t flatfs_get_header(device_t device, uint64_t header_ptr) {
 
 int flatfs_set_header(device_t device, uint64_t header_ptr,
                       flatfs_header_t header) {
-  return device.write(device, header_ptr << 9, (uint8_t *)(&header),
+  return device.write(device.device, (void*)(header_ptr << 9), (uint64_t)(&header),
                       sizeof(flatfs_header_t));
 }
 
@@ -35,7 +35,7 @@ uint64_t flatfs_find(device_t device, uint64_t dir, const char *name) {
 
   // Load all the entries from this block
   uint64_t entries[entry_cnt];
-  if (!device.read(device, (dir + 1) << 9, (uint8_t *)(&entries),
+  if (!device.read(device.device, (void*)((dir + 1) << 9), (uint64_t)(&entries),
                    dir_header.block_cnt << 9))
     return 0;
 
@@ -68,7 +68,7 @@ int flatfs_delete(device_t device, uint64_t dir, const char *name) {
 
   // Load all the entries from this block
   uint64_t entries[entry_cnt];
-  if (!device.read(device, (dir + 1) << 9, (uint8_t *)(&entries),
+  if (!device.read(device.device, (void*)((dir + 1) << 9), (uint64_t)(&entries),
                    dir_header.block_cnt << 9))
     return 0;
 
@@ -106,7 +106,7 @@ int flatfs_read(device_t device, uint64_t header_ptr, uint8_t *buffer) {
       return 0;
 
     // Read to buffer and increment it
-    if (!device.read(device, (header_ptr + 1) << 9, buffer,
+    if (!device.read(device.device, (void*)((header_ptr + 1) << 9), (uint64_t)buffer,
                      header.block_cnt << 9))
       return 0;
     buffer += header.block_cnt << 9;

@@ -13,12 +13,12 @@ struct ata_device_t {
 
 bool ata_pio_present(ata_device_t *device, bool slave);
 
-int ata_pio_read_lba(ata_device_t *device, void *data,
-                     uint64_t lba, uint64_t sectors);
-int ata_pio_write_lba(ata_device_t *device, void *data, 
-                      uint64_t lba, uint64_t sectors);
+int ata_pio_read_lba(ata_device_t *device, uint16_t *data, uint64_t lba,
+                     uint64_t sectors);
+int ata_pio_write_lba(ata_device_t *device, void *data, uint64_t lba,
+                      uint64_t sectors);
 
-void ata_pio_device_init(device_t *device, uint16_t base_port,
+void ata_pio_device_init(ata_device_t *device, uint16_t base_port,
                          uint16_t base_control_port);
 
 #define ATA_PRIMARY_PORT 0x1F0

@@ -45,18 +45,18 @@ int kernel_main(struct stivale2_struct *bootloader_info) {
     return 1;
   }
 
-  drive_t bus;
+  ata_device_t bus;
   bus.base_port = ATA_PRIMARY_PORT;
-  bus.base_control_port = ATA_PRIMARY_CONTROL_PORT;
-  //has_ata_drive(&bus, false);
+  bus.base_control_port = ATA_PRIMARY_PORT;
+  // has_ata_drive(&bus, false);
 
   printf("reading\r\n");
-  uint16_t target[512];
+  uint16_t target[512] = {0xFF};
 
-  ata_pio_read(target, 0, 1, &bus);
+  ata_pio_read_lba(&bus, target, 0, 1);
 
   for (int i = 0; i < 512; i++) {
-    printf("%x ", target[i]);
+    printf("%x ", (unsigned int)target[i]);
     i++;
   }
 
