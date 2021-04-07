@@ -15,7 +15,7 @@ It's like tracing OS history, but with modern knowledge and without a lot of bud
 
 # Running
 You'll need to have a cross-compiler, build one using `./build-cross-compiler.sh`.
-Run `make` to compile the OS and run it in `qemu` (needs `qemu-system-x86_64`) or just `make build` to compile it
+Run `make` to compile the OS and run it in `qemu` (needs `qemu-system-x86_64`) or just `RUN=1 make` to compile it
 
 # Using
 By default the OS does nothing as we don't have a userland but stuff can be added to the kernel for testing purposes.

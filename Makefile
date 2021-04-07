@@ -34,7 +34,11 @@ CFILES := $(shell find src/ -name '*.c')
 ASFILES := $(shell find src/ -name '*.asm')
 OFILES := $(CFILES:.c=.o) $(ASFILES:.asm=.o)
 
+ifeq ($(RUN), 1)
+all: clean $(OS)
+else
 all: clean $(OS) qemu
+endif
 
 $(OS): $(KERNEL)
 	@ echo "[DD] $@"
