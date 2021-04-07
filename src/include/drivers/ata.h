@@ -4,16 +4,22 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-typedef struct pio_bus {
+typedef struct ata_device_t ata_device_t;
+
+struct ata_device_t {
   uint16_t base_port;
   uint16_t base_control_port;
-} drive_t;
+};
 
-bool has_ata_drive(drive_t *device, bool slave);
-int ata_pio_read(uint16_t *target, uint64_t lba, uint16_t sectors,
-                 drive_t *device);
-int ata_pio_write(uint16_t *bytes, uint64_t lba, uint16_t sectors,
-                  drive_t *device);
+bool ata_pio_present(ata_device_t *device, bool slave);
+
+int ata_pio_read_lba(ata_device_t *device, uint16_t *data, uint64_t lba,
+                     uint64_t sectors);
+int ata_pio_write_lba(ata_device_t *device, void *data, uint64_t lba,
+                      uint64_t sectors);
+
+void ata_pio_device_init(ata_device_t *device, uint16_t base_port,
+                         uint16_t base_control_port);
 
 #define ATA_PRIMARY_PORT 0x1F0
 #define ATA_SECONDARY_PORT 0x170
@@ -49,4 +55,4 @@ int ata_pio_write(uint16_t *bytes, uint64_t lba, uint16_t sectors,
 #define ATA_COMMAND_READ_SECTORS_EXT 0x24
 #define ATA_COMMAND_WRITE_SECTORS_EXT 0x34
 
-#endif // __ATA_H__
+#endif // !__ATA_H__
