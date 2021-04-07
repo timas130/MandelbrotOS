@@ -13,12 +13,20 @@ It's like tracing OS history, but with modern knowledge and without a lot of bud
 - A filesystem is being developed. ATA is somewhat functional but still needs testing.
 - We have our own fork of limine which can boot from the flatfs.
 
+# Build Requirements (Arch/Manjaro package names)
+- `base-devel`
+- `qemu`
+- `nasm`
+- `xorriso`
+- `mtools`
+On Debian based distros, replace `base-devel` with `build-essential`.
+
 # Running
 You'll need to have a cross-compiler, build one using `./build-cross-compiler.sh`.
 Run `make` to compile the OS and run it in `qemu` (needs `qemu-system-x86_64`) or just `RUN=1 make` to compile it
 
 # Using
-By default the OS does nothing as we don't have a userland but stuff can be added to the kernel for testing purposes.
+By default the OS does nothing as we don't have a userland but stuff can be added to the kernel for testing purposes. There will often be remaining test code that is left over.
 
 # Commiting
 We code using GCC so any clang standards that may affect GCC will be ignored.
