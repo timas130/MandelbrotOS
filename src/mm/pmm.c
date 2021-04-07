@@ -40,7 +40,6 @@ void reserve_pages(void *adr, uint32_t page_count) {
   }
 }
 
-// REVIEW: This may or may not work. Not really sure
 void *pmalloc(uint32_t pages) {
   for (uint32_t i = 0; i < bitmap_size * 8; i++) {
     for (int j = 0; j < pages; j++) {
@@ -89,10 +88,11 @@ void pmm_init(struct stivale2_mmap_entry *memory_map, size_t memory_entries) {
     }
   }
 
-  memset(&bitmap, 0xFF, bitmap_size);
-
   for (int i = 0; (size_t)i < memory_entries; i++) {
-    if (memory_map[i].type == STIVALE2_MMAP_USABLE)
+    if (memory_map[i].type != STIVALE2_MMAP_USABLE)
+      reserve_pages((void *)memory_map[i].base,
+                    memory_map[i].length / PAGE_SIZE);
+    else
       free_pages((void *)memory_map[i].base, memory_map[i].length / PAGE_SIZE);
   }
 }

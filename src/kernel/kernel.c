@@ -40,6 +40,7 @@ int kernel_main(struct stivale2_struct *bootloader_info) {
     init_idt();
 
     pmm_init(memory_map->memmap, memory_map->entries);
+
   } else {
     return 1;
   }
