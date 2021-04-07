@@ -1,6 +1,7 @@
 # editor settings
 .vscode/
 .idea/
+.ccls
 
 # OS Specific file
 .DS_Store
@@ -17,3 +18,4 @@
 cross/
 echfs/
 limine/
+build/
