@@ -47,7 +47,6 @@ void *pmalloc(uint32_t pages) {
       if (BIT_TEST(i))
         break;
       else if (!BIT_TEST(i) && j == pages - 1) {
-        printf("All things found. Allocing\r\n");
         reserve_pages((void *)(uintptr_t)(i * PAGE_SIZE), pages);
         return (void *)(uintptr_t)(i * PAGE_SIZE);
       }
